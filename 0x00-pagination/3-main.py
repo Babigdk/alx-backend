@@ -1,5 +1,4 @@
-ial next index -> same data page as the request 2-
-print(server.get_hyper_index(res.get('next_index'), page_size))#!/usr/bin/env python3
+#!/usr/bin/env python3
 # sourcery skip: use-fstring-for-formatting
 """
 Main file
