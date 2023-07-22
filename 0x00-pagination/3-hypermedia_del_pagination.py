@@ -39,31 +39,44 @@ class Server:
             }
         return self.__indexed_dataset
 
-    def get_hyper_index(self, index: int = None,
-                        page_size: int = 10) -> Dict:
-        """ return all data"""
+    def get_hyper_index(self, index: int = None, page_size: int = 10) -> Dict:
+        """
+            Get the hyper index
 
-        if index is None:
-            index = 0
+            Args:
+                index: Current page
+                page_size: Total size of the page
 
-        # validate the index
-        assert isinstance(index, int)
-        assert 0 <= index < len(self.indexed_dataset())
-        assert isinstance(page_size, int) and page_size > 0
+            Return:
+                Hyper index
+        """
+        result_dataset = []
+        index_data = self.indexed_dataset()
+        keys_list = list(index_data.keys())
+        assert index + page_size < len(keys_list)
+        assert index < len(keys_list)
 
-        data = []  # collect all indexed data
-        next_index = index + page_size
+        if index not in index_data:
+            start_index = keys_list[index]
+        else:
+            start_index = index
 
-        for value in range(index, next_index):
-            if self.indexed_dataset().get(value):
-                data.append(self.indexed_dataset()[value])
+        for i in range(start_index, start_index + page_size):
+            if i not in index_data:
+                result_dataset.append(index_data[keys_list[i]])
             else:
-                value += 1
-                next_index += 1
+                result_dataset.append(index_data[i])
+
+        next_index: int = index + page_size
+
+        if index in keys_list:
+            next_index
+        else:
+            next_index = keys_list[next_index]
 
         return {
             'index': index,
-            'data': data,
-            'page_size': page_size,
-            'next_index': next_index
+            'next_index': next_index,
+            'page_size': len(result_dataset),
+            'data': result_dataset
         }
