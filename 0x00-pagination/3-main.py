@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# sourcery skip: use-fstring-for-formatting
 """
 Main file
 """
@@ -11,34 +10,30 @@ server = Server()
 server.indexed_dataset()
 
 try:
-        server.get_hyper_index(300000, 100)
+    server.get_hyper_index(300000, 100)
 except AssertionError:
-        print("AssertionError raised when out of range")        
+    print("AssertionError raised when out of range")
 
 
-        index = 3
-        page_size = 2
+index = 3
+page_size = 2
 
-        print("Nb items: {}".format(len(server._Server__indexed_dataset)))
+print("Nb items: {}".format(len(server._Server__indexed_dataset)))
 
-        # 1- request first index
-        res = server.get_hyper_index(index, page_size)
-        print(res)
+# 1- request first index
+res = server.get_hyper_index(index, page_size)
+print(res)
 
-        # 2- request next index
-        print(server.get_hyper_index(res.get('next_index'), page_size))
+# 2- request next index
+print(server.get_hyper_index(res.get('next_index'), page_size))
 
-        # 3- remove the first index
-        del server._Server__indexed_dataset[res.get('index')]
-        print("Nb items: {}".format(len(server._Server__indexed_dataset)))
+# 3- remove the first index
+del server._Server__indexed_dataset[res.get('index')]
+print("Nb items: {}".format(len(server._Server__indexed_dataset)))
 
-<<<<<<< HEAD
 # 4- request again the initial index ->
 # the first data retreives is not the same as the first request
 print(server.get_hyper_index(index, page_size))
-=======
-        # 4- request again the initial index -> the first data retreives is not the same as the first request
-        print(server.get_hyper_index(index, page_size))
->>>>>>> 8a2b04d384979ae39e82d2e3ea334cd8af90368d
 
-        # 5- request again init
+# 5- request again initial next index -> same data page as the request 2-
+print(server.get_hyper_index(res.get('next_index'), page_size))
