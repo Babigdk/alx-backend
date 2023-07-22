@@ -43,27 +43,33 @@ class Server:
                         page_size: int = 10) -> Dict:
         """ return all data"""
 
-        if index is None:
+	dataset = self.dataset()
+        total_items = len(dataset)
+
+        # If index is not provided or out of range, set it to 0
+        if index is None or index >= total_items:
             index = 0
 
-        # validate the index
-        assert isinstance(index, int)
-        assert 0 <= index < len(self.indexed_dataset())
-        assert isinstance(page_size, int) and page_size > 0
-
-        data = []  # collect all indexed data
+        # Calculate the next index to query
         next_index = index + page_size
 
-        for value in range(index, next_index):
-            if self.indexed_dataset().get(value):
-                data.append(self.indexed_dataset()[value])
-            else:
-                value += 1
-                next_index += 1
+        # Make sure the index is in a valid range
+        assert 0 <= index < total_items, "Index out of range"
 
-        return {
-            'index': index,
-            'data': data,
-            'page_size': page_size,
-            'next_index': next_index
+        # Create the response dictionary with the current page data
+        response = {
+            "index": index,
+            "next_index": next_index,
+            "page_size": page_size,
+            "data": []
         }
+
+        # Get the data for the current page, considering any deleted rows
+        deleted_indexes = set()
+        for i in range(index, min(next_index, total_items)):
+            while i in deleted_indexes:
+                i += 1
+            if i < total_items:
+                response["data"].append(dataset[i])
+
+        return response
