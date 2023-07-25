@@ -39,37 +39,44 @@ class Server:
             }
         return self.__indexed_dataset
 
-    def get_hyper_index(self, index: int = None,
-                        page_size: int = 10) -> Dict:
-        """ return all data"""
+    def get_hyper_index(self, index: int = None, page_size: int = 10) -> Dict:
+        """
+            Get the hyper index
 
-	dataset = self.dataset()
-        total_items = len(dataset)
+            Args:
+                index: Current page
+                page_size: Total size of the page
 
-        # If index is not provided or out of range, set it to 0
-        if index is None or index >= total_items:
-            index = 0
+            Return:
+                Hyper index
+        """
+        result_dataset = []
+        index_data = self.indexed_dataset()
+        keys_list = list(index_data.keys())
+        assert index + page_size < len(keys_list)
+        assert index < len(keys_list)
 
-        # Calculate the next index to query
-        next_index = index + page_size
+        if index not in index_data:
+            start_index = keys_list[index]
+        else:
+            start_index = index
 
-        # Make sure the index is in a valid range
-        assert 0 <= index < total_items, "Index out of range"
+        for i in range(start_index, start_index + page_size):
+            if i not in index_data:
+                result_dataset.append(index_data[keys_list[i]])
+            else:
+                result_dataset.append(index_data[i])
 
-        # Create the response dictionary with the current page data
-        response = {
-            "index": index,
-            "next_index": next_index,
-            "page_size": page_size,
-            "data": []
+        next_index: int = index + page_size
+
+        if index in keys_list:
+            next_index
+        else:
+            next_index = keys_list[next_index]
+
+        return {
+            'index': index,
+            'next_index': next_index,
+            'page_size': len(result_dataset),
+            'data': result_dataset
         }
-
-        # Get the data for the current page, considering any deleted rows
-        deleted_indexes = set()
-        for i in range(index, min(next_index, total_items)):
-            while i in deleted_indexes:
-                i += 1
-            if i < total_items:
-                response["data"].append(dataset[i])
-
-        return response

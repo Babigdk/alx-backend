@@ -1,31 +1,8 @@
 #!/usr/bin/env python3
-"""Write a function named index_range that takes two integer
-arguments page and page_size.
-
-The function should return a tuple of size two containing a
-start index and an end index corresponding to the range of
-indexes to return in a list for those particular pagination
-parameters.
-
-Page numbers are 1-indexed, i.e. the first page is page 1.
-"""
-
-
-from typing import Tuple, List
+""" Simple pagination """
 import csv
 import math
-
-
-def index_range(page: int, page_size: int) -> Tuple[int, int]:
-    """
-    start index and an end index corresponding to the range of
-    """
-    # if page is 1, start at 0 and end at page_size
-    # if page is 2, start at ((page-1) * page_size) and
-    # end at (page_size * page)
-    # if page is 3, start at ((page-1) * page_size) and
-    # end at (page_size * page)
-    return ((page-1) * page_size, page_size * page)
+from typing import List, Tuple
 
 
 class Server:
@@ -48,16 +25,36 @@ class Server:
         return self.__dataset
 
     def get_page(self, page: int = 1, page_size: int = 10) -> List[List]:
-        """return the appropriate page of the dataset"""
-        assert type(page) is int and page > 0
-        assert type(page_size) is int and page_size > 0
+        """
+            Get the page
 
-        # get the data from the csv
-        data = self.dataset()
+            Args:
+                page: Current page
+                page_size: Total size of the page
 
-        try:
-            # get the index to start and end at
-            start, end = index_range(page, page_size)
-            return data[start:end]
-        except IndexError:
-            return []
+            Return:
+                List of the pagination done
+        """
+        assert isinstance(page, int) and page > 0
+        assert isinstance(page_size, int) and page_size > 0
+
+        range: Tuple = index_range(page, page_size)
+        pagination: List = self.dataset()
+
+        return (pagination[range[0]:range[1]])
+
+
+def index_range(page: int, page_size: int) -> Tuple[int, int]:
+    """
+    Range of the page
+    Args:
+        page: Current page
+        page_size: Total size of the page
+    Return:
+        tuple with the range start and end size page
+    """
+
+    final_size: int = page * page_size
+    start_size: int = final_size - page_size
+
+    return (start_size, final_size)
