@@ -1,83 +1,67 @@
-#!/usr/bin/python3
-"""
-    MRU module
+#!/usr/bin/env python3
+"""Create a class MRUCache that inherits
+from BaseCaching and is a caching system:
+
+You must use self.cache_data - dictionary
+from the parent class BaseCaching
+You can overload def __init__(self): but don’t
+forget to call the parent init: super().__init__()
+def put(self, key, item):
+Must assign to the dictionary self.cache_data the
+item value for the key key.
+If key or item is None, this method should not do anything.
+If the number of items in self.cache_data is higher
+that BaseCaching.MAX_ITEMS:
+you must discard the most recently used item
+(MRU algorithm)
+you must print DISCARD: with the key discarded and
+following by a new line
+def get(self, key):
+Must return the value in self.cache_data linked to key.
+If key is None or if the key doesn’t exist in
+self.cache_data, return None.
 """
 
-from base_caching import BaseCaching
+
+BaseCaching = __import__('base_caching').BaseCaching
 
 
 class MRUCache(BaseCaching):
-    """ MRUCache define MRU algorithm to use cache
-
-      To use:
-      >>> my_cache = BasicCache()
-      >>> my_cache.print_cache()
-      Current cache:
-
-      >>> my_cache.put("A", "Hello")
-      >>> my_cache.print_cache()
-      A: Hello
-
-      Ex:
-      >>> my_cache.print_cache()
-      Current cache:
-      A: Hello
-      B: World
-      C: Holberton
-      D: School
-      >>> print(my_cache.get("B"))
-      World
-      DISCARD: B
+    """_summary_
     """
 
     def __init__(self):
-        """ Initiliaze
+        """_summary_
         """
         super().__init__()
-        self.leastrecent = []
+        self.usedKeys = []
 
     def put(self, key, item):
+        """_summary_
+
+        Args:
+                        key (_type_): _description_
+                        item (_type_): _description_
         """
-            modify cache data
-
-            Args:
-                key: of the dict
-                item: value of the key
-        """
-        if key or item is not None:
-            valuecache = self.get(key)
-            # Make a new
-            if valuecache is None:
-                if len(self.cache_data) >= BaseCaching.MAX_ITEMS:
-                    keydel = self.leastrecent
-                    lendel = len(keydel) - 1
-                    del self.cache_data[keydel[lendel]]
-                    print("DISCARD: {}".format(self.leastrecent.pop()))
-            else:
-                del self.cache_data[key]
-
-            if key in self.leastrecent:
-                self.leastrecent.remove(key)
-                self.leastrecent.append(key)
-            else:
-                self.leastrecent.append(key)
-
+        if key is not None and item is not None:
             self.cache_data[key] = item
+            if key not in self.usedKeys:
+                self.usedKeys.append(key)
+            else:
+                self.usedKeys.append(
+                    self.usedKeys.pop(self.usedKeys.index(key)))
+            if len(self.usedKeys) > BaseCaching.MAX_ITEMS:
+                discard = self.usedKeys.pop(-2)
+                del self.cache_data[discard]
+                print('DISCARD: {:s}'.format(discard))
 
     def get(self, key):
+        """return the value in self.cache_data linked to key
+
+        Args:
+                        key (_type_): _description_
         """
-            modify cache data
-
-            Args:
-                key: of the dict
-
-            Return:
-                value of the key
-        """
-        valuecache = self.cache_data.get(key)
-
-        if valuecache:
-            self.leastrecent.remove(key)
-            self.leastrecent.append(key)
-
-        return valuecache
+        if key is not None and key in self.cache_data.keys():
+            self.usedKeys.append(self.usedKeys.pop(self.usedKeys.index(key)))
+            return self.cache_data.get(key)
+        return None

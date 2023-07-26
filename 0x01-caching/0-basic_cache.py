@@ -1,48 +1,53 @@
-#!/usr/bin/python3
-"""
-    BaseCache module
+#!/usr/bin/env python3
+"""Create a class BasicCache that inherits from
+BaseCaching and is a caching system:
+
+You must use self.cache_data - dictionary from
+the parent class BaseCaching
+This caching system doesn’t have limit
+def put(self, key, item):
+Must assign to the dictionary self.cache_data the
+item value for the key key.
+If key or item is None, this method should not do
+anything.
+def get(self, key):
+Must return the value in self.cache_data linked
+to key.
+If key is None or if the key doesn’t exist in
+self.cache_data, return None.
 """
 
-from base_caching import BaseCaching
+
+BaseCaching = __import__('base_caching').BaseCaching
 
 
 class BasicCache(BaseCaching):
-    """ BasicCache define a intro to use cache
-
-      To use:
-      >>> my_cache = BasicCache()
-      >>> my_cache.print_cache()
-      Current cache:
-
-      >>> my_cache.put("A", "Hello")
-      >>> my_cache.print_cache()
-      A: Hello
-
-      >>> print(my_cache.get("A"))
-      Hello
+    """_summary_
     """
 
-    def put(self, key, item):
+    def __init__(self):
+        """_summary_
         """
-            modify cache data
+        super().__init__()
 
-            Args:
-                key: of the dict
-                item: value of the key
+    def put(self, key, item):
+        """_summary_
+
+        Args:
+                key (_type_): _description_
+                item (_type_): _description_
         """
-        if key or item is not None:
+        if key is None or item is None:
+            pass
+        else:
             self.cache_data[key] = item
 
     def get(self, key):
+        """return the value in self.cache_data linked to key
+
+        Args:
+                key (_type_): _description_
         """
-            modify cache data
-
-            Args:
-                key: of the dict
-
-            Return:
-                value of the key
-        """
-
-        valuecache = self.cache_data.get(key)
-        return valuecache
+        if key is None or key not in self.cache_data.keys():
+            return None
+        return self.cache_data.get(key)
