@@ -1,111 +1,126 @@
 #!/usr/bin/env python3
-""" Basic Babel setup """
+"""A simple flask app
+"""
+
+
 from flask import Flask, render_template, request, g
-from flask_babel import Babel, _
-from typing import Union
-import pytz
-
-
-users = {
-    1: {"name": "Balou", "locale": "fr", "timezone": "Europe/Paris"},
-    2: {"name": "Beyonce", "locale": "en", "timezone": "US/Central"},
-    3: {"name": "Spock", "locale": "kg", "timezone": "Vulcan"},
-    4: {"name": "Teletubby", "locale": None, "timezone": "Europe/London"},
-}
+from flask_babel import Babel
+from pytz import timezone
+import pytz.exceptions
+from datetime import datetime
+import locale
 
 
 class Config(object):
-    """ Configuration Babel """
-    LANGUAGES = ["en", "fr"]
-    BABEL_DEFAULT_TIMEZONE = 'UTC'
-    BABEL_DEFAULT_LOCALE = 'en'
+	"""_summary_
+
+	Returns:
+					_type_: _description_
+	"""
+	LANGUAGES = ['en', 'fr']
+	BABEL_DEFAULT_LOCALE = 'en'
+	BABEL_DEFAULT_TIMEZONE = 'UTC'
 
 
-app = Flask(__name__, template_folder='templates')
+# configure the flask app
+app = Flask(__name__)
 app.config.from_object(Config)
+app.url_map.strict_slashes = False
 babel = Babel(app)
 
 
+users = {
+	1: {"name": "Balou", "locale": "fr", "timezone": "Europe/Paris"},
+	2: {"name": "Beyonce", "locale": "en", "timezone": "US/Central"},
+	3: {"name": "Spock", "locale": "kg", "timezone": "Vulcan"},
+	4: {"name": "Teletubby", "locale": None, "timezone": "Europe/London"},
+}
+
+
+def get_user():
+	"""returns a user dictionary or None if the ID cannot be found
+	"""
+	login_id = request.args.get('login_as')
+	if login_id:
+		return users.get(int(login_id))
+	return None
+
+
 @app.before_request
-def before_request(login_as: int = None):
-    """ Request of each function
-    """
-    user: dict = get_user()
-    g.user = user
-
-
-def get_user() -> Union[dict, None]:
-    """ Get the user of the dict
-
-        Return User
-    """
-    login_user = request.args.get('login_as', None)
-
-    if login_user is None:
-        return None
-
-    user: dict = {}
-    user[login_user] = users.get(int(login_user))
-
-    return user[login_user]
+def before_request() -> None:
+	"""_summary_
+	"""
+	user = get_user()
+	g.user = user
+ 
+	time_now = pytz.utc.localize(datetime.utcnow())
+	time = time_now.astimezone(timezone(get_timezone()))
+	locale.setlocale(locale.LC_TIME, (get_locale(), 'UTF-8'))
+	time_format = "%b %d, %Y %I:%M:%S %p"
+	g.time = time.strftime(time_format)
 
 
 @babel.localeselector
 def get_locale():
-    """ Locale language
+	"""_summary_
 
-        Return:
-            Best match to the language
-    """
-    locale = request.args.get('locale', None)
+	Returns:
+					_type_: _description_
+	"""
+	# Locale from URL parameters
+	locale = request.args.get('locale')
+	if locale in app.config['LANGUAGES']:
+		return locale
 
-    if locale and locale in app.config['LANGUAGES']:
-        return locale
+	# Locale from user settings
+	if g.user:
+		locale = g.user.get('locale')
+		if locale and locale in app.config['LANGUAGES']:
+			return locale
 
-    locale = request.headers.get('locale', None)
-    if locale and locale in app.config['LANGUAGES']:
-        return locale
+	# ocale from request header
+	locale = request.headers.get('locale', None)
+	if locale in app.config['LANGUAGES']:
+		return locale
 
-    return request.accept_languages.best_match(app.config['LANGUAGES'])
+		# Default locale
+	return request.accept_languages.best_match(app.config['LANGUAGES'])
+
+# babel.init_app(app, locale_selector=get_locale)
 
 
 @babel.timezoneselector
-def get_timezone() -> str:
-    """ Locale language
+def get_timezone():
+	"""
+	Select and return appropriate timezone
+	"""
+	# Find timezone parameter in URL parameters
+	tzone = request.args.get('timezone', None)
+	if tzone:
+		try:
+			return timezone(tzone).zone
+		except pytz.exceptions.UnknownTimeZoneError:
+			pass
 
-        1.Find timezone parameter in URL parameters
-        2.Find time zone from user settings
-        3.Default to UTC
+	# Find time zone from user settings
+	if g.user:
+		try:
+			tzone = g.user.get('timezone')
+			return timezone(tzone).zone
+		except pytz.exceptions.UnknownTimeZoneError:
+			pass
 
-        Return:
-            Timezone or Default UTC
-    """
-    try:
-        if request.args.get("timezone"):
-            timezone = request.args.get("timezone")
-            tzone = pytz.timezone(timezone)
-        elif g.user and g.user.get("timezone"):
-            timezone = g.user.get("timezone")
-            tzone = pytz.timezone(timezone)
-        else:
-            timezone = app.config["BABEL_DEFAULT_TIMEZONE"]
-            tzone = pytz.timezone(timezone)
-
-    except exceptions.UnknownTimeZoneError:
-        timezone = 'UTC'
-
-    return timezone
+	# Default to UTC
+	default_tz = app.config['BABEL_DEFAULT_TIMEZONE']
+	return default_tz
 
 
-@app.route('/', methods=['GET'], strict_slashes=False)
-def hello_world():
-    """ Greeting
-
-        Return:
-            Initial template html
-    """
-    return render_template('6-index.html')
+@app.route('/')
+def index():
+	"""_summary_
+	"""
+	return render_template('5-index.html')
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port="5000")
+if __name__ == '__main__':
+	app.run(port="5000", host="0.0.0.0", debug=True)
